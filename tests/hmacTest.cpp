@@ -13,14 +13,14 @@ TEST(hmacTest, testCalc)
 
   const char* base = "base";
   const char* key  = "key";
-  boost::uint8_t digest[32];
+  uint8_t digest[32];
 
   hmac<sha256>::calc(base, strlen(base), key, strlen(key), digest);
   EXPECT_EQ("AjzhzSIwl1cmM5LXtoyCQFv0Xa9oboJSYOHt0a24NXg=", base64::encode_from_array(digest, 32));
 
   std::string base2 = "base";
   std::string key2  = "key";
-  boost::uint8_t digest2[32];
+  uint8_t digest2[32];
   hmac<sha256>::calc(base2, key2, digest2);
   EXPECT_EQ("AjzhzSIwl1cmM5LXtoyCQFv0Xa9oboJSYOHt0a24NXg=", base64::encode_from_array(digest2, 32));
 }

@@ -1,7 +1,7 @@
 #include "cryptlite/base64.h"
 #include <gtest/gtest.h>
-#include <boost/shared_array.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <memory>
+#include <tuple>
 #include <string>
 
 using namespace cryptlite;
@@ -28,9 +28,11 @@ TEST(base64Test, testEncode)
   EXPECT_EQ('g', c3);
   EXPECT_EQ('e', c4);
 
-  boost::shared_array<unsigned char> arr;
+  std::unique_ptr<unsigned char[]> arr;
   std::size_t len;
-  boost::tie(arr, len) = base64::decode_to_array("aG9nZWhvZ2UgZm9vIGJhciBidXogZm9vIGJhciBidXogaGVsbG8sIHdvcmxkIQ==");
+  auto result = base64::decode_to_array("aG9nZWhvZ2UgZm9vIGJhciBidXogZm9vIGJhciBidXogaGVsbG8sIHdvcmxkIQ==");
+  arr = std::move(std::get<0>(result));
+  len = std::get<1>(result);
   EXPECT_EQ(46, len);
   EXPECT_EQ('h', static_cast<char>(arr[0]));
   EXPECT_EQ('o', static_cast<char>(arr[1]));

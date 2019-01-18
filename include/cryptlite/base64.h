@@ -27,28 +27,29 @@ THE SOFTWARE.
 #include <string>
 #include <sstream>
 #include <cmath>
-#include <boost/utility.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/shared_array.hpp>
-#include <boost/cstdint.hpp>
+#include <tuple>
+#include <memory>
+#include <cstdint>
 
 namespace cryptlite {
 
-class base64 : public boost::noncopyable {
+class base64 {
 
  public:
+  base64(const base64&) = delete;
+  const base64& operator=(const base64&) = delete;
 
   static std::string 
   encode_from_string(const std::string& s)
   {
-    return encode_from_array(reinterpret_cast<const boost::uint8_t*>(s.c_str()), s.size());
+    return encode_from_array(reinterpret_cast<const uint8_t*>(s.c_str()), s.size());
   }
 
   static std::string 
-  encode_from_array(const boost::uint8_t* s, unsigned int size) 
+  encode_from_array(const uint8_t* s, unsigned int size) 
   {
     std::ostringstream os;
-    boost::uint8_t c1, c2, c3;
+    uint8_t c1, c2, c3;
     unsigned int i = 0;
 
     while (i < size) {
@@ -76,7 +77,7 @@ class base64 : public boost::noncopyable {
     return os.str();
   }
 
-  static boost::tuple<boost::shared_array<boost::uint8_t>, std::size_t> 
+  static std::tuple<std::unique_ptr<uint8_t[]>, std::size_t> 
   decode_to_array(const std::string& s)
   {
     char c1, c2, c3, c4;
@@ -86,7 +87,7 @@ class base64 : public boost::noncopyable {
 
     unsigned int reserved = static_cast<unsigned int>(std::ceil(dest_guide_size));
 
-    boost::shared_array<boost::uint8_t> dest(new boost::uint8_t[reserved]);
+    std::unique_ptr<uint8_t[]> dest(new uint8_t[reserved]);
     std::size_t dest_len = 0;
 
     while (i < size) {
@@ -102,31 +103,31 @@ class base64 : public boost::noncopyable {
       if (c2 == -1)
         break;
 
-      dest[dest_len++] = static_cast<boost::uint8_t>(((c1 << 2)|((c2 & 0x30) >> 4) & 0xff));
+      dest[dest_len++] = static_cast<uint8_t>(((c1 << 2)|((c2 & 0x30) >> 4) & 0xff));
 
       do {
         c3 = s[i++] & 0xff;
         if (c3 == 61)
-          return boost::make_tuple(dest, dest_len);
+          return std::make_tuple(std::move(dest), dest_len);
         c3 = dectable[c3];
       } while (i < size && c3 == -1);
       if (c3 == -1)
         break;
 
-      dest[dest_len++] = static_cast<boost::uint8_t>((((c2 & 0xf) << 4)|((c3 & 0x3c) >> 2) & 0xff));
+      dest[dest_len++] = static_cast<uint8_t>((((c2 & 0xf) << 4)|((c3 & 0x3c) >> 2) & 0xff));
 
       do {
         c4 = s[i++] & 0xff;
         if (c4 == 61)
-          return boost::make_tuple(dest, dest_len);
+          return std::make_tuple(std::move(dest), dest_len);
         c4 = dectable[c4];
       } while (i < size && c4 == -1);
       if (c4 == -1)
         break;
 
-      dest[dest_len++] = static_cast<boost::uint8_t>((((c3 & 0x03) << 6)| c4) & 0xff);
+      dest[dest_len++] = static_cast<uint8_t>((((c3 & 0x03) << 6)| c4) & 0xff);
     }
-    return boost::make_tuple(dest, dest_len);
+    return std::make_tuple(std::move(dest), dest_len);
   }
 
   template <typename T>
@@ -163,7 +164,7 @@ class base64 : public boost::noncopyable {
       if (c2 == -1)
         break;
 
-      dest.push_back(static_cast<boost::uint8_t>(((c1 << 2)|((c2 & 0x30) >> 4) & 0xff)));
+      dest.push_back(static_cast<uint8_t>(((c1 << 2)|((c2 & 0x30) >> 4) & 0xff)));
 
       do {
         c3 = s[i++] & 0xff;
@@ -174,7 +175,7 @@ class base64 : public boost::noncopyable {
       if (c3 == -1)
         break;
 
-      dest.push_back(static_cast<boost::uint8_t>((((c2 & 0xf) << 4)|((c3 & 0x3c) >> 2) & 0xff)));
+      dest.push_back(static_cast<uint8_t>((((c2 & 0xf) << 4)|((c3 & 0x3c) >> 2) & 0xff)));
 
       do {
         c4 = s[i++] & 0xff;
@@ -185,7 +186,7 @@ class base64 : public boost::noncopyable {
       if (c4 == -1)
         break;
 
-      dest.push_back(static_cast<boost::uint8_t>((((c3 & 0x03) << 6)| c4) & 0xff));
+      dest.push_back(static_cast<uint8_t>((((c3 & 0x03) << 6)| c4) & 0xff));
     }
   }
 
